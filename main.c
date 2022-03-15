@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 void readBytes(FILE *fp, __uintmax_t* out ) {
    char *ptr;
@@ -19,8 +20,8 @@ int main()
 {
    FILE *fprx = fopen("/sys/class/net/enp4s0/statistics/rx_bytes", "r");
    FILE *fptx = fopen("/sys/class/net/enp4s0/statistics/tx_bytes", "r");
-   static __uintmax_t rxbytes;
-   static __uintmax_t txbytes;
+   uintmax_t rxbytes;
+   uintmax_t txbytes;
   
    readBytes(fprx, &rxbytes);
    readBytes(fptx, &txbytes);
