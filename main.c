@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
    }
 
    if (!opt.adapter) {
-      eprintf("No network adapter provieded\n");
+      eprintf("No network adapter provided\n");
       exit(EXIT_FAILURE);
    }
 
