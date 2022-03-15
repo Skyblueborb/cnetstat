@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BASE 10
-
 void readBytes(FILE *fp, __uintmax_t* out ) {
    char *ptr;
    char buffer[128];
@@ -13,7 +11,7 @@ void readBytes(FILE *fp, __uintmax_t* out ) {
    }
    fread(buffer, 128, 1, fp);
    fclose(fp);
-   *out = strtoul(buffer, &ptr, BASE);
+   *out = strtoul(buffer, &ptr, 0);
    memset(buffer, 0, 128);
 }
 
@@ -26,7 +24,7 @@ int main()
   
    readBytes(fprx, &rxbytes);
    readBytes(fptx, &txbytes);
-   
+
    printf("Data downloaded: %lluMB\n",rxbytes/1000000);
    printf("Data uploaded: %lluMB\n",txbytes/1000000);
    printf("Raw bytes downloaded: %llu\n",rxbytes);
