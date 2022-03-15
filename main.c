@@ -1,9 +1,10 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
-void readBytes(FILE *fp, __uintmax_t* out ) {
+void readBytes(FILE *fp, uintmax_t *out) {
    char *ptr;
    char buffer[128];
    if (fp == NULL) {
@@ -22,15 +23,14 @@ int main()
    FILE *fptx = fopen("/sys/class/net/enp4s0/statistics/tx_bytes", "r");
    uintmax_t rxbytes;
    uintmax_t txbytes;
-  
+
    readBytes(fprx, &rxbytes);
    readBytes(fptx, &txbytes);
 
-   printf("Data downloaded: %lluMB\n",rxbytes/1000000);
-   printf("Data uploaded: %lluMB\n",txbytes/1000000);
-   printf("Raw bytes downloaded: %llu\n",rxbytes);
-   printf("Raw bytes uploaded: %llu\n",txbytes);
-
+   printf("Data downloaded: %luMB\n", rxbytes / 1000000);
+   printf("Data uploaded: %luMB\n", txbytes / 1000000);
+   printf("Raw bytes downloaded: %lu\n", rxbytes);
+   printf("Raw bytes uploaded: %lu\n", txbytes);
 
    return 0;
 }
