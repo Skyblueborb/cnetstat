@@ -16,6 +16,15 @@ void help(const char *program_name) {
    printf("  -h, --help    display this help message\n");
 }
 
+void parse_positional(char *positional, options *opts) {
+   if (!opts->adapter)
+      opts->adapter = positional;
+   else {
+      eprintf("Unexpected positional argument %s\n", positional);
+      exit(EXIT_FAILURE);
+   }
+}
+
 options parse_args(char **argv) {
    options opt = {.help = false, .program_name = NULL, .adapter = NULL};
    if (*argv == NULL) {
@@ -54,22 +63,11 @@ options parse_args(char **argv) {
          ++argv;
          break;
       } else {
-         if (!opt.adapter)
-            opt.adapter = *argv;
-         else {
-            eprintf("Unexpected positional argument %s\n", *argv);
-            exit(EXIT_FAILURE);
-         }
+         parse_positional(*argv, &opt);
       }
    }
    while (*argv) {
-      // FIXME: Reduce code duplication here!
-      if (!opt.adapter)
-         opt.adapter = *argv;
-      else {
-         eprintf("Unexpected positional argument %s\n", *argv);
-         exit(EXIT_FAILURE);
-      }
+      parse_positional(*argv++, &opt);
    }
 
    return opt;
