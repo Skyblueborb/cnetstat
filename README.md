@@ -11,7 +11,11 @@ sudo make install
 ## Usage
 
 ```bash
-cnetstat <networkadapter>
+USAGE:
+  cnetstat [--help] <network_device>
+
+OPTIONS:
+  -h, --help    display this help message
 ```
 
 ## Contributing
