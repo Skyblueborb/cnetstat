@@ -14,6 +14,8 @@ void help(const char *program_name) {
    printf("\n");
    printf("OPTIONS:\n");
    printf("  -h, --help    display this help message\n");
+   printf("  -k, --kb      converts to kilobytes\n");
+   printf("  -g, --gb      converts to gigabytes\n");
 }
 
 void parse_positional(char *positional, options *opts) {
@@ -26,7 +28,7 @@ void parse_positional(char *positional, options *opts) {
 }
 
 options parse_args(char **argv) {
-   options opt = {.help = false, .program_name = NULL, .adapter = NULL};
+   options opt = {.help = false, .program_name = NULL, .adapter = NULL, .conversion = 0};
    if (*argv == NULL) {
       eprintf("Running this program without argv[0] is unsupported!\n");
       exit(EXIT_FAILURE);
@@ -45,6 +47,14 @@ options parse_args(char **argv) {
             case 'h':
                opt.help = true;
                break;
+            // -k
+            case 'k':
+               opt.conversion = 1;
+               break;
+            // -g
+            case 'g':
+               opt.conversion = 2;
+               break;
             default:
                eprintf("Unknown argument -%c\n", *short_options);
                exit(EXIT_FAILURE);
@@ -57,7 +67,11 @@ options parse_args(char **argv) {
       // Long options
       if (strcmp(*argv, "--help") == 0) {
          opt.help = true;
-      } else if (strcmp(*argv, "--") == 0) {
+      } else if (strcmp(*argv, "--gb") == 0) {
+         opt.conversion = 2;
+      } else if (strcmp(*argv, "--kb") == 0) {
+         opt.conversion = 1;
+      }  else if (strcmp(*argv, "--") == 0) {
          // If we encounter a "--" we stop parsing and treat further arguments
          // as non-flag arguemnts
          ++argv;

@@ -4,6 +4,7 @@
 typedef struct {
    const char *program_name;
    const char *adapter;
+   unsigned int conversion;
    bool help;
 } options;
 
