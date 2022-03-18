@@ -12,10 +12,12 @@ sudo make install
 
 ```bash
 USAGE:
-  cnetstat [--help] <network_device>
+  cnetstat [-hkb] <network_device>
 
 OPTIONS:
   -h, --help    display this help message
+  -k, --kb      converts the output to kilobytes
+  -g, --gb      converts the output to gigabytes
 ```
 
 ## Contributing

@@ -14,8 +14,8 @@ void help(const char *program_name) {
    printf("\n");
    printf("OPTIONS:\n");
    printf("  -h, --help    display this help message\n");
-   printf("  -k, --kb      converts to kilobytes\n");
-   printf("  -g, --gb      converts to gigabytes\n");
+   printf("  -k, --kb      converts the output to kilobytes\n");
+   printf("  -g, --gb      converts the output to gigabytes\n");
 }
 
 void parse_positional(char *positional, options *opts) {
