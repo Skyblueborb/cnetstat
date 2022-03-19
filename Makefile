@@ -1,4 +1,4 @@
-SRC = main.c arg.c
+SRC = main.c arg.c xdg.c
 CC ?= clang
 
 all: cnetstat 
