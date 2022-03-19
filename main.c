@@ -9,6 +9,7 @@
 #include <sys/types.h>
 
 #include "arg.h"
+#include "save.h"
 #include "utils.h"
 #include "xdg.h"
 
@@ -16,49 +17,6 @@ int lenValue (uintmax_t value){
   int l=1;
   while(value>9){l++; value/=10;}
   return l;
-}
-
-void read_saved(uintmax_t *rxout, uintmax_t *txout) {
-   char *confpath = xdg_config_dir("cnetstat");
-
-   char tmp[strlen(confpath) + strlen("/saved") + 1];
-   sprintf(tmp, "%s/saved", confpath);
-   FILE *savef = fopen(tmp, "r");
-
-   free(confpath);
-
-   if(!savef) {
-      *rxout = 0, *txout = 0;
-      return;
-   }
-   
-   int ret;
-   if((ret = fscanf(savef, "%zd %zd", rxout, txout)) != 2) {
-      eprintf("Failed to read saved stats: %s\n", ret < 0 ? strerror(errno) : "Invalid format");
-      exit(EXIT_FAILURE);
-   }
-}
-
-void save(uintmax_t rx, uintmax_t tx) {
-   // FIXME: only call this once
-   char* confpath = xdg_config_dir("cnetstat");
-   if(mkdirp(confpath, 0777) < 0) {
-      perror("Could not create config directory");
-      exit(EXIT_FAILURE);
-   }
-
-   char tmp[strlen(confpath) + strlen("/saved") + 1];
-   sprintf(tmp, "%s/saved", confpath);
-   FILE* savef = fopen(tmp, "w+");
-
-   if(!savef) {
-      perror("Could not open save file");
-      exit(EXIT_FAILURE);
-   }
-
-   free(confpath);
-
-   fprintf(savef, "%zd %zd", rx, tx);
 }
 
 void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
@@ -122,24 +80,41 @@ int main(int argc, char **argv) {
    sprintf(path, "%s/statistics/tx_bytes", adapter_dir);
    FILE *txf = fopen(path, "r");
 
-   uintmax_t rxbytes, txbytes, tmp;
+   uintmax_t tmp;
 
-   read_saved(&rxbytes, &txbytes);
+   save sv = read_save();
+   time_t boottime = get_boot_time();
+   if(boottime != sv.boottime) {
+      sv.rxbytes_boot = 0;
+      sv.txbytes_boot = 0;
+   }
 
    int ret;
    if((ret = fscanf(rxf, "%zd", &tmp)) != 1) {
       eprintf("Could not read rx statistics: %s", ret < 0 ? strerror(errno) : "Invalid format");
       exit(EXIT_FAILURE);
    }
-   rxbytes += tmp;
+   sv.rxbytes += tmp - sv.rxbytes_boot;
+   sv.rxbytes_boot = tmp;
    if((ret = fscanf(txf, "%zd", &tmp)) != 1) {
       eprintf("Could not read tx statistics: %s", ret < 0 ? strerror(errno) : "Invalid format");
       exit(EXIT_FAILURE);
    }
-   txbytes += tmp;
+   sv.txbytes += tmp - sv.txbytes_boot;
+   sv.txbytes_boot = tmp;
 
-   printBytes(rxbytes, txbytes, &opt);
-   save(rxbytes, txbytes);
+   printBytes(sv.rxbytes, sv.txbytes, &opt);
+   write_save(sv);
+
+   if(fclose(rxf)) {
+      perror("Failed to close stat file");
+      exit(EXIT_FAILURE);
+   }
+   if(fclose(txf)) {
+      perror("Failed to close stat file");
+      exit(EXIT_FAILURE);
+   }
+
 
    return 0;
 }

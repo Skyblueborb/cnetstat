@@ -1,4 +1,5 @@
 #include <pwd.h>
+#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -37,3 +38,14 @@ int mkdirp(char* path, mode_t mode) {
    return 0;
 }
 
+// FIXME: THIS FUNCTION MAY NOT BE ACCURATE
+time_t get_boot_time() {
+   struct timespec tp;
+   time_t t = time(NULL);
+   if(clock_gettime(CLOCK_BOOTTIME, &tp) < 0) {
+      perror("Could not get time from clock CLOCK_BOOTTIME");
+      exit(EXIT_FAILURE);
+   }
+
+   return t - tp.tv_sec;
+}
