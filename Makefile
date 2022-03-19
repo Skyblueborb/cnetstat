@@ -1,5 +1,5 @@
 SRC = main.c arg.c
-CC = clang
+CC ?= clang
 
 all: cnetstat 
 
