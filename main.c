@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
@@ -8,7 +9,9 @@
 #include <sys/types.h>
 
 #include "arg.h"
+#include "save.h"
 #include "utils.h"
+#include "xdg.h"
 
 int lenValue (uintmax_t value){
   int l=1;
@@ -16,74 +19,7 @@ int lenValue (uintmax_t value){
   return l;
 }
 
-const char *getUserName()
-{
-  register struct passwd *pw;
-  register uid_t uid;
-
-   uid = geteuid();
-   pw = getpwuid(uid);
-   if (!pw) exit(EXIT_FAILURE);
-   return pw->pw_name;
-}
-
-void writeBytes(FILE *fprx, FILE *fptx, uintmax_t rbytes, uintmax_t tbytes) {
-   char buffer[32];
-   sprintf(buffer, "%ju", rbytes);
-   fwrite(buffer, lenValue(rbytes), 1, fprx);
-   sprintf(buffer, "%ju", tbytes);  
-   fwrite(buffer, lenValue(tbytes), 1, fptx);
-   // fclose(fprx);
-   // fclose(fptx);
-}
-
-void readBytes(FILE *fprx, FILE *fptx, uintmax_t *out_rx, uintmax_t *out_tx) {
-   char confpath[6 + strlen(getUserName()) + 18 + 1];
-   sprintf(confpath, "/home/%s/.config/cnetstat/", getUserName());
-   mkdir(confpath,0777);
-   char bytepath[strlen(confpath) + 7];
-   sprintf(bytepath, "%srxbytes", confpath);
-   FILE *fpcfgrxread = fopen(bytepath, "r");
-   FILE *fpcfgrxwrite = fopen(bytepath, "w");
-   sprintf(bytepath, "%stxbytes", confpath);
-   FILE *fpcfgtxread = fopen(bytepath, "r");
-   FILE *fpcfgtxwrite = fopen(bytepath, "w");
-
-   char *ptr;
-   char buffer[32];
-   uintmax_t rx = 0, tx = 0;
-   uintmax_t rx_prev = 0, tx_prev = 0;
-   fgets(buffer, 32, fprx);
-   rx = strtoul(buffer, &ptr, 0);
-
-   fgets(buffer, 32, fptx);
-   tx = strtoul(buffer, &ptr, 0);
-   // memset(buffer, 0, 32);
-   
-   char test[32];
-   fgets(test,32,fpcfgrxread);
-   
-   rx_prev = strtoul(test, &ptr, 0);
-
-   fgets(buffer,32,fpcfgtxread);
-   tx_prev = strtoul(buffer, &ptr, 0);
-
-   fprintf(stdout, "RX: %ju\n", rx_prev);
-   fprintf(stdout, "TX: %ju\n", tx_prev);
-
-   // if (rx_prev > rx) {
-   //    rx = rx_prev;
-   // } else if (tx_prev > tx) {
-   //    tx = tx_prev;
-   // }
-   writeBytes(fpcfgrxwrite, fpcfgtxwrite, rx, tx);
-   *out_rx = rx;
-   *out_tx = tx;
-   memset(buffer, 0, 32);
-}
-
 void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
-   
    float rx_converted;
    float tx_converted;
    
@@ -140,16 +76,45 @@ int main(int argc, char **argv) {
    // len("/statistics/_x_bytes") = 20
    char path[15 + strlen(name) + 20 + 1];
    sprintf(path, "%s/statistics/rx_bytes", adapter_dir);
-   FILE *fprx = fopen(path, "r");
+   FILE *rxf = fopen(path, "r");
    sprintf(path, "%s/statistics/tx_bytes", adapter_dir);
-   FILE *fptx = fopen(path, "r");
+   FILE *txf = fopen(path, "r");
 
-   uintmax_t rxbytes;
-   uintmax_t txbytes;
+   uintmax_t tmp;
 
+   save sv = read_save();
+   time_t boottime = get_boot_time();
+   if(boottime != sv.boottime) {
+      sv.rxbytes_boot = 0;
+      sv.txbytes_boot = 0;
+   }
 
-   readBytes(fprx, fptx, &rxbytes, &txbytes);
-   printBytes(rxbytes, txbytes, &opt);
+   int ret;
+   if((ret = fscanf(rxf, "%zd", &tmp)) != 1) {
+      eprintf("Could not read rx statistics: %s", ret < 0 ? strerror(errno) : "Invalid format");
+      exit(EXIT_FAILURE);
+   }
+   sv.rxbytes += tmp - sv.rxbytes_boot;
+   sv.rxbytes_boot = tmp;
+   if((ret = fscanf(txf, "%zd", &tmp)) != 1) {
+      eprintf("Could not read tx statistics: %s", ret < 0 ? strerror(errno) : "Invalid format");
+      exit(EXIT_FAILURE);
+   }
+   sv.txbytes += tmp - sv.txbytes_boot;
+   sv.txbytes_boot = tmp;
+
+   printBytes(sv.rxbytes, sv.txbytes, &opt);
+   write_save(sv);
+
+   if(fclose(rxf)) {
+      perror("Failed to close stat file");
+      exit(EXIT_FAILURE);
+   }
+   if(fclose(txf)) {
+      perror("Failed to close stat file");
+      exit(EXIT_FAILURE);
+   }
+
 
    return 0;
 }
