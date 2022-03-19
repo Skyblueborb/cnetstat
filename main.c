@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
@@ -9,6 +10,7 @@
 
 #include "arg.h"
 #include "utils.h"
+#include "xdg.h"
 
 int lenValue (uintmax_t value){
   int l=1;
@@ -27,63 +29,72 @@ const char *getUserName()
    return pw->pw_name;
 }
 
-void writeBytes(FILE *fprx, FILE *fptx, uintmax_t rbytes, uintmax_t tbytes) {
-   char buffer[32];
-   sprintf(buffer, "%ju", rbytes);
-   fwrite(buffer, lenValue(rbytes), 1, fprx);
-   sprintf(buffer, "%ju", tbytes);  
-   fwrite(buffer, lenValue(tbytes), 1, fptx);
-   // fclose(fprx);
-   // fclose(fptx);
+// FIXME: Should this be in utils?
+int mkdirp(char* path, mode_t mode) {
+   for (char* ptr = strchr(path + 1, '/'); ptr; ptr = strchr(ptr + 1, '/')) {
+      *ptr = '\0';
+
+   if(mkdir(path, mode) < 0) {
+      if(errno != EEXIST) {
+         *ptr = '/';
+         return -1;
+      }
+   }
+
+   *ptr = '/';
+  }
+   if(mkdir(path, mode) < 0) {
+      if(errno != EEXIST) {
+         return -1;
+      }
+   }
+   return 0;
 }
 
-void readBytes(FILE *fprx, FILE *fptx, uintmax_t *out_rx, uintmax_t *out_tx) {
-   char confpath[6 + strlen(getUserName()) + 18 + 1];
-   sprintf(confpath, "/home/%s/.config/cnetstat/", getUserName());
-   mkdir(confpath,0777);
-   char bytepath[strlen(confpath) + 7];
-   sprintf(bytepath, "%srxbytes", confpath);
-   FILE *fpcfgrxread = fopen(bytepath, "r");
-   FILE *fpcfgrxwrite = fopen(bytepath, "w");
-   sprintf(bytepath, "%stxbytes", confpath);
-   FILE *fpcfgtxread = fopen(bytepath, "r");
-   FILE *fpcfgtxwrite = fopen(bytepath, "w");
+void read_saved(uintmax_t *rxout, uintmax_t *txout) {
+   char *confpath = xdg_config_dir("cnetstat");
 
-   char *ptr;
-   char buffer[32];
-   uintmax_t rx = 0, tx = 0;
-   uintmax_t rx_prev = 0, tx_prev = 0;
-   fgets(buffer, 32, fprx);
-   rx = strtoul(buffer, &ptr, 0);
+   char tmp[strlen(confpath) + strlen("/saved") + 1];
+   sprintf(tmp, "%s/saved", confpath);
+   FILE *savef = fopen(tmp, "r");
 
-   fgets(buffer, 32, fptx);
-   tx = strtoul(buffer, &ptr, 0);
-   // memset(buffer, 0, 32);
+   free(confpath);
+
+   if(!savef) {
+      *rxout = 0, *txout = 0;
+      return;
+   }
    
-   char test[32];
-   fgets(test,32,fpcfgrxread);
-   
-   rx_prev = strtoul(test, &ptr, 0);
+   int ret;
+   if((ret = fscanf(savef, "%zd %zd", rxout, txout)) != 2) {
+      eprintf("Failed to read saved stats: %s\n", ret < 0 ? strerror(errno) : "Invalid format");
+      exit(EXIT_FAILURE);
+   }
+}
 
-   fgets(buffer,32,fpcfgtxread);
-   tx_prev = strtoul(buffer, &ptr, 0);
+void save(uintmax_t rx, uintmax_t tx) {
+   // FIXME: only call this once
+   char* confpath = xdg_config_dir("cnetstat");
+   if(mkdirp(confpath, 0777) < 0) {
+      perror("Could not create config directory");
+      exit(EXIT_FAILURE);
+   }
 
-   fprintf(stdout, "RX: %ju\n", rx_prev);
-   fprintf(stdout, "TX: %ju\n", tx_prev);
+   char tmp[strlen(confpath) + strlen("/saved") + 1];
+   sprintf(tmp, "%s/saved", confpath);
+   FILE* savef = fopen(tmp, "w+");
 
-   // if (rx_prev > rx) {
-   //    rx = rx_prev;
-   // } else if (tx_prev > tx) {
-   //    tx = tx_prev;
-   // }
-   writeBytes(fpcfgrxwrite, fpcfgtxwrite, rx, tx);
-   *out_rx = rx;
-   *out_tx = tx;
-   memset(buffer, 0, 32);
+   if(!savef) {
+      perror("Could not open save file");
+      exit(EXIT_FAILURE);
+   }
+
+   free(confpath);
+
+   fprintf(savef, "%zd %zd", rx, tx);
 }
 
 void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
-   
    float rx_converted;
    float tx_converted;
    
@@ -140,16 +151,28 @@ int main(int argc, char **argv) {
    // len("/statistics/_x_bytes") = 20
    char path[15 + strlen(name) + 20 + 1];
    sprintf(path, "%s/statistics/rx_bytes", adapter_dir);
-   FILE *fprx = fopen(path, "r");
+   FILE *rxf = fopen(path, "r");
    sprintf(path, "%s/statistics/tx_bytes", adapter_dir);
-   FILE *fptx = fopen(path, "r");
+   FILE *txf = fopen(path, "r");
 
-   uintmax_t rxbytes;
-   uintmax_t txbytes;
+   uintmax_t rxbytes, txbytes, tmp;
 
+   read_saved(&rxbytes, &txbytes);
 
-   readBytes(fprx, fptx, &rxbytes, &txbytes);
+   int ret;
+   if((ret = fscanf(rxf, "%zd", &tmp)) != 1) {
+      eprintf("Could not read rx statistics: %s", ret < 0 ? strerror(errno) : "Invalid format");
+      exit(EXIT_FAILURE);
+   }
+   rxbytes += tmp;
+   if((ret = fscanf(txf, "%zd", &tmp)) != 1) {
+      eprintf("Could not read tx statistics: %s", ret < 0 ? strerror(errno) : "Invalid format");
+      exit(EXIT_FAILURE);
+   }
+   txbytes += tmp;
+
    printBytes(rxbytes, txbytes, &opt);
+   save(rxbytes, txbytes);
 
    return 0;
 }
