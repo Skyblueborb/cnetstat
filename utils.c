@@ -46,6 +46,8 @@ time_t get_boot_time() {
       perror("Could not get time from clock CLOCK_BOOTTIME");
       exit(EXIT_FAILURE);
    }
+   
+   float diff = difftime(t, tp.tv_sec);
 
-   return t - tp.tv_sec;
+   return diff;
 }
