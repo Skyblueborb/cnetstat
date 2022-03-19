@@ -1,6 +1,8 @@
 # cnetstat
 
 cnetstat is a Linux network utilization program written in pure C.
+Statistics are collected from the kernel and displayed in a human-readable format.
+The collected data persists after reboot.
 
 ## Installation
 

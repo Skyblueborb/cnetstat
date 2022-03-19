@@ -25,12 +25,12 @@ void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
    
    switch (opts->conversion) {
       case 0:
-         printf("Data downloaded: %juMB\n", rbytes / 1000000);
-         printf("Data uploaded: %juMB\n", tbytes / 1000000);
+         printf("Data downloaded: %luMB\n", rbytes / 1000000);
+         printf("Data uploaded: %luMB\n", tbytes / 1000000);
          break;
       case 1:
-         printf("Data downloaded: %juKB\n", rbytes / 1000);
-         printf("Data uploaded: %juKB\n", tbytes / 1000);
+         printf("Data downloaded: %luKB\n", rbytes / 1000);
+         printf("Data uploaded: %luKB\n", tbytes / 1000);
          break;
       case 2:
          rx_converted = (float)rbytes / 1000000000;
@@ -39,12 +39,12 @@ void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
          printf("Data uploaded: %.2fGB\n", tx_converted);
          break;
       default:
-         printf("Raw bytes downloaded: %ju\n", rbytes);
-         printf("Raw bytes uploaded: %ju\n", tbytes);
+         printf("Raw bytes downloaded: %lu\n", rbytes);
+         printf("Raw bytes uploaded: %lu\n", tbytes);
          break;
    }
-   printf("Raw bytes downloaded: %ju\n", rbytes);
-   printf("Raw bytes uploaded: %ju\n", tbytes);
+   printf("Raw bytes downloaded: %lu\n", rbytes);
+   printf("Raw bytes uploaded: %lu\n", tbytes);
 }
 
 int main(int argc, char **argv) {
