@@ -1,6 +1,6 @@
 # cnetstat
 
-cnetstat is a network utilization program written in pure C.
+cnetstat is a Linux network utilization program written in pure C.
 
 ## Installation
 

@@ -3,21 +3,83 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pwd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "arg.h"
 #include "utils.h"
 
-void readBytes(FILE *fp, uintmax_t *out) {
+int lenValue (uintmax_t value){
+  int l=1;
+  while(value>9){l++; value/=10;}
+  return l;
+}
+
+const char *getUserName()
+{
+  register struct passwd *pw;
+  register uid_t uid;
+
+   uid = geteuid();
+   pw = getpwuid(uid);
+   if (!pw) exit(EXIT_FAILURE);
+   return pw->pw_name;
+}
+
+void writeBytes(FILE *fprx, FILE *fptx, uintmax_t rbytes, uintmax_t tbytes) {
+   char buffer[32];
+   sprintf(buffer, "%ju", rbytes);
+   fwrite(buffer, lenValue(rbytes), 1, fprx);
+   sprintf(buffer, "%ju", tbytes);  
+   fwrite(buffer, lenValue(tbytes), 1, fptx);
+   // fclose(fprx);
+   // fclose(fptx);
+}
+
+void readBytes(FILE *fprx, FILE *fptx, uintmax_t *out_rx, uintmax_t *out_tx) {
+   char confpath[6 + strlen(getUserName()) + 18 + 1];
+   sprintf(confpath, "/home/%s/.config/cnetstat/", getUserName());
+   mkdir(confpath,0777);
+   char bytepath[strlen(confpath) + 7];
+   sprintf(bytepath, "%srxbytes", confpath);
+   FILE *fpcfgrxread = fopen(bytepath, "r");
+   FILE *fpcfgrxwrite = fopen(bytepath, "w");
+   sprintf(bytepath, "%stxbytes", confpath);
+   FILE *fpcfgtxread = fopen(bytepath, "r");
+   FILE *fpcfgtxwrite = fopen(bytepath, "w");
+
    char *ptr;
-   char buffer[128];
-   if (fp == NULL) {
-      perror("Unable to open file");
-      exit(EXIT_FAILURE);
-   }
-   fread(buffer, 128, 1, fp);
-   fclose(fp);
-   *out = strtoul(buffer, &ptr, 0);
-   memset(buffer, 0, 128);
+   char buffer[32];
+   uintmax_t rx = 0, tx = 0;
+   uintmax_t rx_prev = 0, tx_prev = 0;
+   fgets(buffer, 32, fprx);
+   rx = strtoul(buffer, &ptr, 0);
+
+   fgets(buffer, 32, fptx);
+   tx = strtoul(buffer, &ptr, 0);
+   // memset(buffer, 0, 32);
+   
+   char test[32];
+   fgets(test,32,fpcfgrxread);
+   
+   rx_prev = strtoul(test, &ptr, 0);
+
+   fgets(buffer,32,fpcfgtxread);
+   tx_prev = strtoul(buffer, &ptr, 0);
+
+   fprintf(stdout, "RX: %ju\n", rx_prev);
+   fprintf(stdout, "TX: %ju\n", tx_prev);
+
+   // if (rx_prev > rx) {
+   //    rx = rx_prev;
+   // } else if (tx_prev > tx) {
+   //    tx = tx_prev;
+   // }
+   writeBytes(fpcfgrxwrite, fpcfgtxwrite, rx, tx);
+   *out_rx = rx;
+   *out_tx = tx;
+   memset(buffer, 0, 32);
 }
 
 void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
@@ -27,12 +89,12 @@ void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
    
    switch (opts->conversion) {
       case 0:
-         printf("Data downloaded: %luMB\n", rbytes / 1000000);
-         printf("Data uploaded: %luMB\n", tbytes / 1000000);
+         printf("Data downloaded: %juMB\n", rbytes / 1000000);
+         printf("Data uploaded: %juMB\n", tbytes / 1000000);
          break;
       case 1:
-         printf("Data downloaded: %luKB\n", rbytes / 1000);
-         printf("Data uploaded: %luKB\n", tbytes / 1000);
+         printf("Data downloaded: %juKB\n", rbytes / 1000);
+         printf("Data uploaded: %juKB\n", tbytes / 1000);
          break;
       case 2:
          rx_converted = (float)rbytes / 1000000000;
@@ -41,12 +103,12 @@ void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
          printf("Data uploaded: %.2fGB\n", tx_converted);
          break;
       default:
-         printf("Raw bytes downloaded: %lu\n", rbytes);
-         printf("Raw bytes uploaded: %lu\n", tbytes);
+         printf("Raw bytes downloaded: %ju\n", rbytes);
+         printf("Raw bytes uploaded: %ju\n", tbytes);
          break;
    }
-   printf("Raw bytes downloaded: %lu\n", rbytes);
-   printf("Raw bytes uploaded: %lu\n", tbytes);
+   printf("Raw bytes downloaded: %ju\n", rbytes);
+   printf("Raw bytes uploaded: %ju\n", tbytes);
 }
 
 int main(int argc, char **argv) {
@@ -85,8 +147,8 @@ int main(int argc, char **argv) {
    uintmax_t rxbytes;
    uintmax_t txbytes;
 
-   readBytes(fprx, &rxbytes);
-   readBytes(fptx, &txbytes);
+
+   readBytes(fprx, fptx, &rxbytes, &txbytes);
    printBytes(rxbytes, txbytes, &opt);
 
    return 0;
