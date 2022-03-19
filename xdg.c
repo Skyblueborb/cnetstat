@@ -4,6 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "utils.h"
+
 char *xdg_config_dir(char *postfix) {
   char *config_home;
   if ((config_home = getenv("XDG_CONFIG_HOME"))) {
@@ -21,11 +23,7 @@ char *xdg_config_dir(char *postfix) {
 
     return buf;
   } else {
-    uid_t uid = geteuid();
-    struct passwd *pw = getpwuid(uid);
-    if (!pw)
-      exit(EXIT_FAILURE);
-    char *name = pw->pw_name;
+    char *name = get_user_name();
     size_t name_len = strlen(name);
 
     char *buf = malloc(strlen("/home/") + name_len + strlen("/.config/") +

@@ -18,39 +18,6 @@ int lenValue (uintmax_t value){
   return l;
 }
 
-const char *getUserName()
-{
-  register struct passwd *pw;
-  register uid_t uid;
-
-   uid = geteuid();
-   pw = getpwuid(uid);
-   if (!pw) exit(EXIT_FAILURE);
-   return pw->pw_name;
-}
-
-// FIXME: Should this be in utils?
-int mkdirp(char* path, mode_t mode) {
-   for (char* ptr = strchr(path + 1, '/'); ptr; ptr = strchr(ptr + 1, '/')) {
-      *ptr = '\0';
-
-   if(mkdir(path, mode) < 0) {
-      if(errno != EEXIST) {
-         *ptr = '/';
-         return -1;
-      }
-   }
-
-   *ptr = '/';
-  }
-   if(mkdir(path, mode) < 0) {
-      if(errno != EEXIST) {
-         return -1;
-      }
-   }
-   return 0;
-}
-
 void read_saved(uintmax_t *rxout, uintmax_t *txout) {
    char *confpath = xdg_config_dir("cnetstat");
 
