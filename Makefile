@@ -3,7 +3,7 @@ CC ?= clang
 
 all: cnetstat 
 
-cnetstat:
+cnetstat: $(SRC)
 	$(CC) -O3 -Wall $(SRC) -o cnetstat -I.
 
 clean:
