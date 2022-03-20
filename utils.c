@@ -47,7 +47,7 @@ time_t get_boot_time() {
       exit(EXIT_FAILURE);
    }
    
-   float diff = difftime(t, tp.tv_sec);
+   float secs = tp.tv_nsec * 0.000000001 + tp.tv_sec;
 
-   return diff;
+   return t - secs;
 }
