@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
       sv.rxbytes_boot = 0;
       sv.txbytes_boot = 0;
    }
-
+   sv.boottime = boottime;
    int ret;
    if((ret = fscanf(rxf, "%zd", &tmp)) != 1) {
       eprintf("Could not read rx statistics: %s", ret < 0 ? strerror(errno) : "Invalid format");
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
    }
    sv.txbytes += tmp - sv.txbytes_boot;
    sv.txbytes_boot = tmp;
-
+   	
    printBytes(sv.rxbytes, sv.txbytes, &opt);
    write_save(sv);
 
