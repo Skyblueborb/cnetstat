@@ -14,11 +14,11 @@ void help(const char *program_name) {
     printf("\n");
     printf("OPTIONS:\n");
     printf("  -h, --help    display this help message\n");
-    printf("  -b, --kb      converts the output to kilobytes\n");
+    printf("  -b, --kb      prints raw bytes in addition to conversion\n");
     printf("  -k, --kb      converts the output to kilobytes\n");
-    printf("  -m, --mb      converts the output to kilobytes\n");
+    printf("  -m, --mb      converts the output to megabytes\n");
     printf("  -g, --gb      converts the output to gigabytes\n");
-    printf("  -t, --tb      converts the output to gigabytes\n");
+    printf("  -t, --tb      converts the output to terabytes\n");
 }
 
 void parse_positional(char *positional, options *opts) {
