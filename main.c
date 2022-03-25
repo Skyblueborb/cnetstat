@@ -19,32 +19,37 @@ int lenValue (uintmax_t value){
     return l;
 }
 
-void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
-    float rx_converted;
-    float tx_converted;
-   
-    switch (opts->conversion) {
-       case 0:
-          printf("Data downloaded: %luMB\n", rbytes / 1000000);
-          printf("Data uploaded: %luMB\n", tbytes / 1000000);
-          break;
-       case 1:
-          printf("Data downloaded: %luKB\n", rbytes / 1000);
-          printf("Data uploaded: %luKB\n", tbytes / 1000);
-          break;
-       case 2:
-          rx_converted = (float)rbytes / 1000000000;
-          tx_converted = (float)tbytes / 1000000000;
-          printf("Data downloaded: %.2fGB\n", rx_converted);
-          printf("Data uploaded: %.2fGB\n", tx_converted);
-          break;
-       default:
-          printf("Raw bytes downloaded: %lu\n", rbytes);
-          printf("Raw bytes uploaded: %lu\n", tbytes);
-          break;
+
+char *toSensibleUnit(float bytes, int conversion) {
+    const char *size_units[] = {"B", "kB", "MB", "GB", "TB", "PB", "EB"};
+
+    char *buf = malloc(lenValue(bytes) + 3);
+    int unit_index = 0;
+    while (conversion == 0 && bytes > 1000 && unit_index < 6) {
+        bytes /= 1000;
+        unit_index++;
     }
-    printf("Raw bytes downloaded: %lu\n", rbytes);
-    printf("Raw bytes uploaded: %lu\n", tbytes);
+    while(conversion != 0 && conversion > unit_index) {
+        bytes /= 1000;
+        unit_index++;
+    }
+    sprintf(buf, "%.2f%s", bytes, size_units[unit_index]);
+
+    return buf;
+}
+
+
+void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
+    char *buf= NULL;
+    // printf("Conversion level: %hu\n", opts->conversion);
+    buf = toSensibleUnit(rbytes, opts->conversion);
+    printf("Data downloaded: %s\n", buf);
+    buf = toSensibleUnit(tbytes, opts->conversion);
+    printf("Data uploaded: %s\n", buf);
+    if(opts->raw) {
+        printf("Raw bytes downloaded: %lu\n", rbytes);
+        printf("Raw bytes uploaded: %lu\n", tbytes);
+    }
 }
 
 int main(int argc, char **argv) {
@@ -77,8 +82,16 @@ int main(int argc, char **argv) {
     char path[15 + strlen(name) + 20 + 1];
     sprintf(path, "%s/statistics/rx_bytes", adapter_dir);
     FILE *rxf = fopen(path, "r");
+    if(rxf == NULL) {
+        eprintf("Could not open %s\n", path);
+        exit(EXIT_FAILURE);
+    }
     sprintf(path, "%s/statistics/tx_bytes", adapter_dir);
     FILE *txf = fopen(path, "r");
+    if(txf == NULL) {
+        eprintf("Could not open %s\n", path);
+        exit(EXIT_FAILURE);
+    }
 
     uintmax_t tmp;
     save sv = read_save();
@@ -103,6 +116,7 @@ int main(int argc, char **argv) {
     sv.txbytes_boot = tmp;
 
     printBytes(sv.rxbytes, sv.txbytes, &opt);
+
     write_save(sv);
 
     if(fclose(rxf)) {

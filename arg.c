@@ -7,15 +7,18 @@
 
 void usage(const char *program_name) {
     printf("USAGE:\n");
-    printf("  %s [--help] <network_device>\n", program_name);
+    printf("  %s [--help, --gb ...] <network_device>\n", program_name);
 }
 void help(const char *program_name) {
     usage(program_name);
     printf("\n");
     printf("OPTIONS:\n");
     printf("  -h, --help    display this help message\n");
+    printf("  -b, --kb      converts the output to kilobytes\n");
     printf("  -k, --kb      converts the output to kilobytes\n");
+    printf("  -m, --mb      converts the output to kilobytes\n");
     printf("  -g, --gb      converts the output to gigabytes\n");
+    printf("  -t, --tb      converts the output to gigabytes\n");
 }
 
 void parse_positional(char *positional, options *opts) {
@@ -48,13 +51,24 @@ options parse_args(char **argv) {
             case 'h':
                opt.help = true;
                break;
+            // -b
+            case 'b':
+               opt.raw = true;
+               break;
             // -k
             case 'k':
                opt.conversion = 1;
                break;
+            case 'm':
+               opt.conversion = 2;
+               break;
             // -g
             case 'g':
-               opt.conversion = 2;
+               opt.conversion = 3;
+               break;
+            // -t
+            case 't':
+               opt.conversion = 4;
                break;
             // case 's':
             //    opt.save_file = *++argv;
@@ -74,11 +88,18 @@ options parse_args(char **argv) {
        // Long options
        if (strcmp(*argv, "--help") == 0) {
           opt.help = true;
+       } else if (strcmp(*argv, "--tb") == 0) {
+          opt.conversion = 4;
        } else if (strcmp(*argv, "--gb") == 0) {
+          opt.conversion = 3;
+       } else if (strcmp(*argv, "--mb") == 0) {
           opt.conversion = 2;
        } else if (strcmp(*argv, "--kb") == 0) {
           opt.conversion = 1;
-       } /*else if (strcmp(*argv, "--save-file") == 0) {
+       } else if (strcmp(*argv, "--bytes") == 0) {
+          opt.raw = true;
+       }
+          /*else if (strcmp(*argv, "--save-file") == 0) {
           opt.save_file = *++argv;
        } else if (strcmp(*argv, "--read-file") == 0) {
           opt.read_file = *++argv;
