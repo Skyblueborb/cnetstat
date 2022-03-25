@@ -29,7 +29,7 @@ void parse_positional(char *positional, options *opts) {
 
 options parse_args(char **argv) {
     options opt = {.help = false, .program_name = NULL, .adapter = NULL, .conversion = 0,
-                  .save_file = NULL, .read_file = NULL};
+                  /*.save_file = NULL, .read_file = NULL*/};
     if (*argv == NULL) {
        eprintf("Running this program without argv[0] is unsupported!\n");
        exit(EXIT_FAILURE);
@@ -78,11 +78,11 @@ options parse_args(char **argv) {
           opt.conversion = 2;
        } else if (strcmp(*argv, "--kb") == 0) {
           opt.conversion = 1;
-       } else if (strcmp(*argv, "--save-file") == 0) {
+       } /*else if (strcmp(*argv, "--save-file") == 0) {
           opt.save_file = *++argv;
        } else if (strcmp(*argv, "--read-file") == 0) {
           opt.read_file = *++argv;
-       } else if (strcmp(*argv, "--") == 0) {
+       } */else if (strcmp(*argv, "--") == 0) {
           // If we encounter a "--" we stop parsing and treat further arguments
           // as non-flag arguemnts
           ++argv;
