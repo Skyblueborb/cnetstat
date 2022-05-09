@@ -44,7 +44,6 @@ options parse_args(char **argv) {
        // This parser supports chaining options like -abcd!
        if (**argv == '-' && (*argv)[1] != '-') {
           const char *short_options = *argv;
-
           while (*++short_options) {
             switch (*short_options) {
             // -h
@@ -81,7 +80,6 @@ options parse_args(char **argv) {
                exit(EXIT_FAILURE);
             }
           }
-
           continue;
        }
 
