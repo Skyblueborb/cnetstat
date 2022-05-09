@@ -14,7 +14,7 @@ void help(const char *program_name) {
     printf("\n");
     printf("OPTIONS:\n");
     printf("  -h, --help    display this help message\n");
-    printf("  -b, --kb      prints raw bytes in addition to conversion\n");
+    printf("  -b, --bytes   prints raw bytes in addition to conversion\n");
     printf("  -k, --kb      converts the output to kilobytes\n");
     printf("  -m, --mb      converts the output to megabytes\n");
     printf("  -g, --gb      converts the output to gigabytes\n");
@@ -44,7 +44,7 @@ options parse_args(char **argv) {
        // This parser supports chaining options like -abcd!
        if (**argv == '-' && (*argv)[1] != '-') {
           const char *short_options = *argv;
- 
+
           while (*++short_options) {
             switch (*short_options) {
             // -h
@@ -81,7 +81,7 @@ options parse_args(char **argv) {
                exit(EXIT_FAILURE);
             }
           }
- 
+
           continue;
        }
 
