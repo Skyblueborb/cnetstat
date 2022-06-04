@@ -24,6 +24,7 @@ OPTIONS:
   -m, --mb      converts the output to megabytes
   -g, --gb      converts the output to gigabytes
   -t, --tb      converts the output to terabytes
+  -w, --wipe    wipes the currently saved bytes
 ```
 
 ## Contributing

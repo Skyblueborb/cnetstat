@@ -19,6 +19,7 @@ void help(const char *program_name) {
     printf("  -m, --mb      converts the output to megabytes\n");
     printf("  -g, --gb      converts the output to gigabytes\n");
     printf("  -t, --tb      converts the output to terabytes\n");
+    printf("  -w, --wipe    wipes the currently saved bytes\n");
 }
 
 void parse_positional(char *positional, options *opts) {
@@ -31,8 +32,7 @@ void parse_positional(char *positional, options *opts) {
 }
 
 options parse_args(char **argv) {
-    options opt = {.help = false, .program_name = NULL, .adapter = NULL, .conversion = 0,
-                  /*.save_file = NULL, .read_file = NULL*/};
+    options opt = {.program_name = NULL, .adapter = NULL, .conversion = 0, .raw=false, .help=false, .wipe=false};
     if (*argv == NULL) {
        eprintf("Running this program without argv[0] is unsupported!\n");
        exit(EXIT_FAILURE);
@@ -69,12 +69,10 @@ options parse_args(char **argv) {
             case 't':
                opt.conversion = 4;
                break;
-            // case 's':
-            //    opt.save_file = *++argv;
-            //    break;
-            // case 'r':
-            //    opt.read_file = *++argv;
-            //    break;
+            // -w
+            case 'w':
+               opt.wipe = true;
+               break;
             default:
                eprintf("Unknown argument -%c\n", *short_options);
                exit(EXIT_FAILURE);
@@ -96,12 +94,9 @@ options parse_args(char **argv) {
           opt.conversion = 1;
        } else if (strcmp(*argv, "--bytes") == 0) {
           opt.raw = true;
-       }
-          /*else if (strcmp(*argv, "--save-file") == 0) {
-          opt.save_file = *++argv;
-       } else if (strcmp(*argv, "--read-file") == 0) {
-          opt.read_file = *++argv;
-       } */else if (strcmp(*argv, "--") == 0) {
+       } else if (strcmp(*argv, "--wipe") == 0) {
+          opt.wipe = true;
+       } else if (strcmp(*argv, "--") == 0) {
           // If we encounter a "--" we stop parsing and treat further arguments
           // as non-flag arguemnts
           ++argv;

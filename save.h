@@ -15,10 +15,10 @@ typedef struct {
 
     /** Bytes recieved since boot **/
     size_t rxbytes_boot;
-    
+
     /** Bytes transmitted since boot **/
     size_t txbytes_boot;
 } save;
 
-save read_save();
+save read_save(bool);
 void write_save(save);

@@ -6,9 +6,8 @@ typedef struct {
    const char *adapter;
    unsigned short int conversion;
    bool raw;
-//    const char *save_file;
-//    const char *read_file;
    bool help;
+   bool wipe;
 } options;
 
 void usage(const char *program_name);
