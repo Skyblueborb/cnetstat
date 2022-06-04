@@ -1,7 +1,8 @@
+#include <linux/sysinfo.h>
 #include <pwd.h>
-#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/sysinfo.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -40,14 +41,9 @@ int mkdirp(char* path, mode_t mode) {
 
 // FIXME: THIS FUNCTION MAY NOT BE ACCURATE
 time_t get_boot_time() {
-    struct timespec tp;
+    struct sysinfo inf;
+    sysinfo(&inf);
+    long uptime=inf.uptime;
     time_t t = time(NULL);
-    if(clock_gettime(CLOCK_BOOTTIME, &tp) < 0) {
-        perror("Could not get time from clock CLOCK_BOOTTIME");
-        exit(EXIT_FAILURE);
-    }
-   
-    float secs = tp.tv_nsec * 0.000000001 + tp.tv_sec;
-
-    return t - secs;
+    return t - uptime;
 }

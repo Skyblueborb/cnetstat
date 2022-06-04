@@ -96,7 +96,8 @@ int main(int argc, char **argv) {
     uintmax_t tmp;
     save sv = read_save();
     time_t boottime = get_boot_time();
-    if(boottime != sv.boottime) {
+    if(boottime-1 == sv.boottime);
+    else if(boottime != sv.boottime) {
        sv.rxbytes_boot = 0;
        sv.txbytes_boot = 0;
        sv.boottime = boottime;
