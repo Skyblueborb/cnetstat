@@ -39,7 +39,6 @@ int mkdirp(char* path, mode_t mode) {
     return 0;
 }
 
-// FIXME: THIS FUNCTION MAY NOT BE ACCURATE
 time_t get_boot_time() {
     struct sysinfo inf;
     sysinfo(&inf);
