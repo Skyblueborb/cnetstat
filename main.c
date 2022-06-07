@@ -60,16 +60,7 @@ int main(int argc, char **argv) {
     }
 
     if (!opt.adapter) {
-       if(access("/sys/class/net/wlan0", F_OK ) == 0 ) {
-          opt.adapter = "wlan0";
-       } else if(access("/sys/class/net/eth0", F_OK ) == 0 ) {
-          opt.adapter = "eth0";
-       } else if(access("/sys/class/net/enp4s0", F_OK ) == 0 ) {
-          opt.adapter = "enp4s0";
-       } else {
-       eprintf("No network adapter found/provided\n");
-       exit(EXIT_FAILURE);
-       }
+        opt.adapter = find_adapter();
     }
 
     const char *name = opt.adapter;

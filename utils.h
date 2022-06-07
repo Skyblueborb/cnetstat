@@ -12,6 +12,11 @@ char *get_user_name();
 int mkdirp(char *path, mode_t mode);
 
 /**
- * Gets the time the system was booted at in seconds
+  * Finds the adapter name to use.
+  **/
+char* find_adapter();
+
+/**
+ * Gets the time the system was booted at in seconds.
  **/
 time_t get_boot_time();
