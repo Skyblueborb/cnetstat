@@ -55,9 +55,24 @@ char* find_adapter() {
         char *buf;
         asprintf(&buf, "/sys/class/net/%s/device", entry->d_name);
         if (access(buf, F_OK) == 0) {
-            free(buf);
-            free(dir);
-            return entry->d_name;
+            // len("/sys/class/net/") = 15
+            // len("/operstate") = 10
+            char path[15 + strlen(entry->d_name) + 10];
+            sprintf(path, "/sys/class/net/%s/operstate", entry->d_name);
+            FILE *tmp = fopen(path, "r");
+
+            int ret;
+            if ((ret = fscanf(tmp, "%s", buf)) != 1) {
+                eprintf("Failed to read saved stats: %s\n", ret < 0 ? strerror(errno) : "Invalid format");
+                exit(EXIT_FAILURE);
+            }
+
+            if (strcmp(buf, "up\n")) {
+                free(buf);
+                free(dir);
+                fclose(tmp);
+                return entry->d_name;
+            }
         }
     }
 
