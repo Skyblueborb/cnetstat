@@ -68,10 +68,11 @@ char* find_adapter() {
             }
 
             if (strcmp(buf, "up\n")) {
+                char* cpy = strdup(entry->d_name);
                 free(buf);
                 free(dir);
                 fclose(tmp);
-                return entry->d_name;
+                return cpy;
             }
         }
         free(buf);

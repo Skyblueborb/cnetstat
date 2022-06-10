@@ -62,6 +62,8 @@ int main(int argc, char **argv) {
     }
 
     if (!opt.adapter) {
+        // NOTE: This theoretically leaks memory but it lives throught the whole program
+        //       so it isn't worth freeing it.
        opt.adapter = find_adapter();
     }
 
