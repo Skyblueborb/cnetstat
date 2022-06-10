@@ -44,8 +44,10 @@ void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
     // printf("Conversion level: %hu\n", opts->conversion);
     buf = toSensibleUnit(rbytes, opts->conversion);
     printf("Data downloaded: %s\n", buf);
+    free(buf);
     buf = toSensibleUnit(tbytes, opts->conversion);
     printf("Data uploaded: %s\n", buf);
+    free(buf);
     if(opts->raw) {
         printf("Raw bytes downloaded: %lu\n", rbytes);
         printf("Raw bytes uploaded: %lu\n", tbytes);
