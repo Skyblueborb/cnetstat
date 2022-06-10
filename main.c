@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <math.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -13,10 +14,9 @@
 #include "utils.h"
 #include "xdg.h"
 
-int lenValue (uintmax_t value){
-    int l=1;
-    while(value>9){l++; value/=10;}
-    return l;
+int lenValue (uintmax_t value) {
+    // log10 seems to be a little faster than repeatedly dividing by 10
+    return (value != 0) * (int)(log10(value)) + 1;
 }
 
 
