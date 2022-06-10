@@ -74,6 +74,7 @@ char* find_adapter() {
                 return entry->d_name;
             }
         }
+        free(buf);
     }
 
     free(dir);
