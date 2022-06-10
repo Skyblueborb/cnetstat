@@ -23,7 +23,7 @@ int lenValue (uintmax_t value) {
 char *toSensibleUnit(float bytes, int conversion) {
     const char *size_units[] = {"B", "kB", "MB", "GB", "TB", "PB", "EB"};
 
-    char *buf = malloc(lenValue(bytes) + 3);
+    char* buf = malloc(lenValue(bytes) + 6);
     int unit_index = 0;
     while (conversion == 0 && bytes > 1000 && unit_index < 6) {
         bytes /= 1000;
