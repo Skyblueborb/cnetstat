@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <math.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -13,17 +14,16 @@
 #include "utils.h"
 #include "xdg.h"
 
-int lenValue (uintmax_t value){
-    int l=1;
-    while(value>9){l++; value/=10;}
-    return l;
+int lenValue (uintmax_t value) {
+    // log10 seems to be a little faster than repeatedly dividing by 10
+    return (value != 0) * (int)(log10(value)) + 1;
 }
 
 
 char *toSensibleUnit(float bytes, int conversion) {
     const char *size_units[] = {"B", "kB", "MB", "GB", "TB", "PB", "EB"};
 
-    char *buf = malloc(lenValue(bytes) + 3);
+    char* buf = malloc(lenValue(bytes) + 6);
     int unit_index = 0;
     while (conversion == 0 && bytes > 1000 && unit_index < 6) {
         bytes /= 1000;
@@ -44,8 +44,10 @@ void printBytes(uintmax_t rbytes, uintmax_t tbytes, options *opts) {
     // printf("Conversion level: %hu\n", opts->conversion);
     buf = toSensibleUnit(rbytes, opts->conversion);
     printf("Data downloaded: %s\n", buf);
+    free(buf);
     buf = toSensibleUnit(tbytes, opts->conversion);
     printf("Data uploaded: %s\n", buf);
+    free(buf);
     if(opts->raw) {
         printf("Raw bytes downloaded: %lu\n", rbytes);
         printf("Raw bytes uploaded: %lu\n", tbytes);
@@ -60,6 +62,8 @@ int main(int argc, char **argv) {
     }
 
     if (!opt.adapter) {
+        // NOTE: This theoretically leaks memory but it lives throught the whole program
+        //       so it isn't worth freeing it.
        opt.adapter = find_adapter();
     }
 
