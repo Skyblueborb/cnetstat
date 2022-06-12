@@ -61,27 +61,31 @@ int main(int argc, char **argv) {
        exit(EXIT_SUCCESS);
     }
 
-    bool adapter_free = false;
-    if (!opt.adapter) {
-        opt.adapter = find_adapter();
-        adapter_free = true;
+    bool interface_free = false;
+    if (opt.interface == NULL) {
+        opt.interface = find_interface();
+        if(opt.interface == NULL) {
+            fprintf(stderr, "Could not find active interface\n");
+            exit(EXIT_FAILURE);
+        }
+        interface_free = true;
     }
 
-    const char *name = opt.adapter;
+    const char *name = opt.interface;
     // len("/sys/class/net/") = 15
-    char adapter_dir[15 + strlen(name) + 1];
-    sprintf(adapter_dir, "/sys/class/net/%s", name);
+    char interface_dir[15 + strlen(name) + 1];
+    sprintf(interface_dir, "/sys/class/net/%s", name);
 
     // len("/sys/class/net/") = 15
     // len("/statistics/_x_bytes") = 20
     char path[15 + strlen(name) + 20 + 1];
-    sprintf(path, "%s/statistics/rx_bytes", adapter_dir);
+    sprintf(path, "%s/statistics/rx_bytes", interface_dir);
     FILE *rxf = fopen(path, "r");
     if(rxf == NULL) {
         eprintf("Could not open %s\n", path);
         exit(EXIT_FAILURE);
     }
-    sprintf(path, "%s/statistics/tx_bytes", adapter_dir);
+    sprintf(path, "%s/statistics/tx_bytes", interface_dir);
     FILE *txf = fopen(path, "r");
     if(txf == NULL) {
         eprintf("Could not open %s\n", path);
@@ -125,8 +129,8 @@ int main(int argc, char **argv) {
        exit(EXIT_FAILURE);
     }
     
-    if(adapter_free)
-        free((void*)opt.adapter);
+    if(interface_free)
+        free((void*)opt.interface);
 
     return 0;
 }

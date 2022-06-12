@@ -79,15 +79,12 @@ int mkdirp(char* path, mode_t mode) {
 
         *ptr = '/';
     }
-    if(mkdir(path, mode) < 0) {
-        if(errno != EEXIST) {
+    if(mkdir(path, mode) < 0 && errno != EEXIST)
             return -1;
-        }
-    }
     return 0;
 }
 
-char* find_adapter() {
+char* find_interface() {
     DIR *dir = opendir("/sys/class/net");
     if (!dir) {
         perror("Failed to open /sys/class/net directory");

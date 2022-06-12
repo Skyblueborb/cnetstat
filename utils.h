@@ -32,7 +32,7 @@ ssize_t getword(FILE* file, char** wordptr);
   * Returns the name of the first active interface.
   * Ignores loopback and virtual interfaces.
   **/
-char* find_adapter();
+char* find_interface();
 
 /**
  * Gets the time the system was booted at in seconds.
