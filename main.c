@@ -61,10 +61,10 @@ int main(int argc, char **argv) {
        exit(EXIT_SUCCESS);
     }
 
+    bool adapter_free = false;
     if (!opt.adapter) {
-        // NOTE: This theoretically leaks memory but it lives throught the whole program
-        //       so it isn't worth freeing it.
-       opt.adapter = find_adapter();
+        opt.adapter = find_adapter();
+        adapter_free = true;
     }
 
     const char *name = opt.adapter;
@@ -124,6 +124,9 @@ int main(int argc, char **argv) {
        perror("Failed to close stat file");
        exit(EXIT_FAILURE);
     }
+    
+    if(adapter_free)
+        free((void*)opt.adapter);
 
     return 0;
 }
