@@ -23,8 +23,8 @@ void help(const char *program_name) {
 }
 
 void parse_positional(char *positional, options *opts) {
-    if (!opts->adapter)
-       opts->adapter = positional;
+    if (!opts->interface)
+       opts->interface = positional;
     else {
        eprintf("Unexpected positional argument %s\n", positional);
        exit(EXIT_FAILURE);
@@ -32,7 +32,7 @@ void parse_positional(char *positional, options *opts) {
 }
 
 options parse_args(char **argv) {
-    options opt = {.program_name = NULL, .adapter = NULL, .conversion = 0, .raw=false, .help=false, .wipe=false};
+    options opt = {.program_name = NULL, .interface = NULL, .conversion = 0, .raw=false, .help=false, .wipe=false};
     if (*argv == NULL) {
        eprintf("Running this program without argv[0] is unsupported!\n");
        exit(EXIT_FAILURE);

@@ -3,7 +3,7 @@
 
 typedef struct {
    const char *program_name;
-   const char *adapter;
+   const char *interface;
    unsigned short int conversion;
    bool raw;
    bool help;
