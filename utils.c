@@ -130,6 +130,7 @@ char* find_interface() {
             fclose(type_file);
             continue;
         }
+        fclose(type_file);
         free(type_str);
 
         // len("/sys/class/net/") = 15
