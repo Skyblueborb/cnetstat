@@ -151,7 +151,7 @@ char* find_interface() {
 
         if (strcmp(word, "up") == 0) {
             char* cpy = strdup(entry->d_name);
-            free(dir);
+            closedir(dir);
             free(word);
             fclose(tmp);
             return cpy;
@@ -160,7 +160,7 @@ char* find_interface() {
         fclose(tmp);
     }
 
-    free(dir);
+    closedir(dir);
     return NULL;
 }
 
