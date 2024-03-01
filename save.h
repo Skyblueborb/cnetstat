@@ -11,7 +11,7 @@ typedef struct {
     size_t txbytes;
 
     /** Boot time in UNIX seconds **/
-    time_t boottime;
+    char *boot_id;
 
     /** Bytes recieved since boot **/
     size_t rxbytes_boot;

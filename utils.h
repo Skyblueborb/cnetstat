@@ -35,6 +35,6 @@ ssize_t getword(FILE* file, char** wordptr);
 char* find_interface();
 
 /**
- * Gets the time the system was booted at in seconds.
+ * Gets the random unique boot identifier.
  **/
-time_t get_boot_time();
+char *get_boot_id();

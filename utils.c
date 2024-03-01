@@ -157,16 +157,30 @@ char* find_interface() {
             return cpy;
         }
         free(word);
+        fclose(tmp);
     }
 
     free(dir);
     return NULL;
 }
 
-time_t get_boot_time() {
-    struct sysinfo inf;
-    sysinfo(&inf);
-    long uptime=inf.uptime;
-    time_t t = time(NULL);
-    return t - uptime;
+char *get_boot_id() {
+    // len("/proc/sys/kernel/random/boot_id") = 31
+    char random_boot_id_path[32] = "/proc/sys/kernel/random/boot_id";
+    FILE *boot_id = fopen(random_boot_id_path, "r");
+    if (!boot_id) {
+        perrorf("Failed to open %s", random_boot_id_path);
+        exit(EXIT_FAILURE);
+    }
+
+    char *word = NULL;
+    ssize_t word_len = getword(boot_id, &word);
+    if (word_len < 0) {
+        perrorf("Failed to read from %s", random_boot_id_path);
+        exit(EXIT_FAILURE);
+    }
+
+    fclose(boot_id);
+
+    return word;
 }

@@ -21,7 +21,7 @@ save read_save(bool wipe) {
         save sv = {
             .rxbytes = 0,
             .txbytes = 0,
-            .boottime = get_boot_time(),
+            .boot_id = get_boot_id(),
             .rxbytes_boot = 0,
             .txbytes_boot = 0
         };
@@ -30,7 +30,9 @@ save read_save(bool wipe) {
 
     int ret;
     save sv;
-    if((ret = fscanf(savef, "%zd %zd %zd %zd %zd", &sv.rxbytes, &sv.txbytes, &sv.boottime, &sv.rxbytes_boot, &sv.txbytes_boot)) != 5) {
+    // len(boot_id) = 36 + 1
+    sv.boot_id = malloc(37);
+    if((ret = fscanf(savef, "%zd %zd %36s %zd %zd", &sv.rxbytes, &sv.txbytes, sv.boot_id, &sv.rxbytes_boot, &sv.txbytes_boot)) != 5) {
         eprintf("Failed to read saved stats: %s\n", ret < 0 ? strerror(errno) : "Invalid format");
         exit(EXIT_FAILURE);
     }
@@ -68,8 +70,8 @@ void write_save(save sv) {
     free(confpath);
 
     int ret;
-    if ((ret = fprintf(savef, "%zd %zd %zd %zd %zd", sv.rxbytes, sv.txbytes,
-                    sv.boottime, sv.rxbytes_boot, sv.txbytes_boot)) < 0) {
+    if ((ret = fprintf(savef, "%zd %zd %s %zd %zd", sv.rxbytes, sv.txbytes,
+                    sv.boot_id, sv.rxbytes_boot, sv.txbytes_boot)) < 0) {
         eprintf("Could not write to save file: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }

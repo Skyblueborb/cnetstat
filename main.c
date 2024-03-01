@@ -94,13 +94,11 @@ int main(int argc, char **argv) {
 
     uintmax_t tmp;
     save sv = read_save(opt.wipe);
-    time_t boottime = get_boot_time();
-    if(boottime-1 == sv.boottime);
-    else if(boottime+1 == sv.boottime);
-    else if(boottime != sv.boottime) {
+    char* boot_id = get_boot_id();
+    if(strcmp(boot_id, sv.boot_id)) {
        sv.rxbytes_boot = 0;
        sv.txbytes_boot = 0;
-       sv.boottime = boottime;
+       sv.boot_id = boot_id;
     }
     int ret;
     if((ret = fscanf(rxf, "%zd", &tmp)) != 1) {
@@ -128,9 +126,12 @@ int main(int argc, char **argv) {
        perror("Failed to close stat file");
        exit(EXIT_FAILURE);
     }
-    
+
     if(interface_free)
         free((void*)opt.interface);
+
+    free(sv.boot_id);
+    free(boot_id);
 
     return 0;
 }
