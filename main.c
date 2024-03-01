@@ -95,11 +95,15 @@ int main(int argc, char **argv) {
     uintmax_t tmp;
     save sv = read_save(opt.wipe);
     char* boot_id = get_boot_id();
+    bool free_sv_boot_id = true;
     if(strcmp(boot_id, sv.boot_id)) {
+       free(sv.boot_id);
        sv.rxbytes_boot = 0;
        sv.txbytes_boot = 0;
        sv.boot_id = boot_id;
+       free_sv_boot_id = false;
     }
+
     int ret;
     if((ret = fscanf(rxf, "%zd", &tmp)) != 1) {
        eprintf("Could not read rx statistics: %s", ret < 0 ? strerror(errno) : "Invalid format");
@@ -130,7 +134,9 @@ int main(int argc, char **argv) {
     if(interface_free)
         free((void*)opt.interface);
 
-    free(sv.boot_id);
+    if(free_sv_boot_id)
+        free(sv.boot_id);
+
     free(boot_id);
 
     return 0;
