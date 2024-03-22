@@ -4,7 +4,7 @@ CC ?= clang
 all: cnetstat 
 
 cnetstat: $(SRC)
-	$(CC) -lm -O3 -Wall $(SRC) -o cnetstat -I.
+	$(CC) -O3 -Wall $(SRC) -o cnetstat -I. -lm
 
 clean:
 	rm -f cnetstat
